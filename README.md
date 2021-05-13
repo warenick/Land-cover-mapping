@@ -1,6 +1,8 @@
 # Land-cover-mapping
 Land cover mapping from medium-resolution SAR and multi-spectral remote sensing images 
 
+## [Ours wiki](https://github.com/warenick/Land-cover-mapping/wiki)
+
 ## Team members
 Ivan Dubrovin, Shakir Sofi, Veronika Shirokova, Ilya Barskiy, Evgeny Avdotin, Kundyz Onlabek, Arina Ivanova, Aleksandr Gamayunov.
 
