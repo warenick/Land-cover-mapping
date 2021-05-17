@@ -1,10 +1,10 @@
-// https://code.earthengine.google.com/bd4f007eae5379388ee6c65e9004d4ea
+// https://code.earthengine.google.com/6c2d15888607af8b4316c5447e5e29f2
 
 var sentinel2 = ee.ImageCollection("COPERNICUS/S2_SR"),
     modis_landcover = ee.ImageCollection("MODIS/006/MCD12Q1"),
     s2_rgb_params = {"opacity":1,"bands":["B4","B3","B2"],"max":2800,"gamma":1},
     s2_fci_params = {"opacity":1,"bands":["B8","B4","B3"],"max":5500,"gamma":1},
-    landcover_params = {"opacity":1,"bands":["LC_Type2"],"max":14,"gamma":1},
+    landcover_params = {"opacity":1,"bands":["LC_Prop2"],"min":1,"max":36,"gamma":1},
     Munich = 
     /* shown: false */
     ee.Geometry.Polygon(
@@ -38,7 +38,7 @@ var s2_image = sentinel2.filterBounds(ROI)
 var landcover = modis_landcover.filter(ee.Filter.eq('system:index', '2017_01_01'))
     .mosaic()
     .clip(ROI)
-    .select('LC_Type2');
+    .select('LC_Prop2');
 
 Map.centerObject(ROI, 10);
 Map.addLayer(landcover, landcover_params, 'Landcover', false);
@@ -54,8 +54,8 @@ var s2_part3 = s2_image.select('B7', 'B8A', 'B11');
 var s2_part4 = s2_image.select('B12');
 
 Export.image.toDrive({
-  'image': s2_part4,
-  'description': 'stpetersburg_s2_se12ms_b2b3b4',
+  'image': landcover,
+  'description': 'stpetersburg_lc_sen12ms',
   'scale': 10,
   'crs': 'EPSG:32636'  // for StPetersburg: EPSG:32636, for Rome and Munich: EPSG:32633
 });
