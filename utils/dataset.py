@@ -51,8 +51,17 @@ class SEN12MSDataset(torch.utils.data.Dataset):
         s1, _ = self._dataset.get_patch(self.season, scene, patch, self.s1_bands)
         s2, _ = self._dataset.get_patch(self.season, scene, patch, self.s2_bands)
         lc, _ = self._dataset.get_patch(self.season, scene, patch, self.lc_bands)
+        
+        # for some reason, some of the Sentinel-1 images (i.e., scene=146, patch=202)
+        # have NaN values which completely screw everything up. took ages to find what's
+        # wrong and why. the error PyTorch threw was at the accuracy computation:
+        # ValueError: Probabilities in `preds` must sum up to 1 across the `C` dimension.
+        # arrrgh damn you NaNs
 
-        s1_image = s1 - s1.mean(axis=(1, 2), keepdims=True)
+        mean = np.nanmean(s1, axis=(1, 2), keepdims=True)
+        np.nan_to_num(s1, copy=False, nan=mean)
+        
+        s1_image = s1 - mean
         s1_image /= s1.std(axis=(1, 2), keepdims=True)
         s1_image = torch.tensor(s1_image)
 
@@ -147,7 +156,16 @@ class SEN12MSDataset_64x64subpatches(torch.utils.data.Dataset):
         s2_subpatch = s2[:, i * 64 : (i + 1) * 64, j * 64 : (j + 1) * 64]
         lc_subpatch = lc[:, i * 64 : (i + 1) * 64, j * 64 : (j + 1) * 64]
 
-        s1_image = s1_subpatch - s1_subpatch.mean(axis=(1, 2), keepdims=True)
+        # for some reason, some of the Sentinel-1 images (i.e., scene=146, patch=202)
+        # have NaN values which completely screw everything up. took ages to find what's
+        # wrong and why. the error PyTorch threw was at the accuracy computation:
+        # ValueError: Probabilities in `preds` must sum up to 1 across the `C` dimension.
+        # arrrgh damn you NaNs
+
+        mean = np.nanmean(s1_subpatch, axis=(1, 2), keepdims=True)
+        np.nan_to_num(s1_subpatch, copy=False, nan=mean)
+
+        s1_image = s1_subpatch - mean
         s1_image /= s1_subpatch.std(axis=(1, 2), keepdims=True)
         s1_image = torch.tensor(s1_image)
 
