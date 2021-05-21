@@ -11,9 +11,11 @@ SUMMER = sen12ms.Seasons.SUMMER
 class SEN12MSDataset(torch.utils.data.Dataset):
     """ PyTotch wrapper for the dataloader provided by the dataset authors. """
 
-    def __init__(self, base_dir, season=SUMMER):
+    def __init__(self, base_dir, season=SUMMER, s2_band_order="unnatural"):
         self.base_dir = base_dir
         self.season = season
+        self.s2_band_order = s2_band_order
+
         self._dataset = sen12ms.SEN12MSDataset(base_dir=base_dir)
 
         # get a dictionary {scene_id: patch_ids} for the whole season
@@ -29,18 +31,37 @@ class SEN12MSDataset(torch.utils.data.Dataset):
 
         self.lc_bands = sen12ms.LCBands.landuse
         self.s1_bands = sen12ms.S1Bands.ALL
-        self.s2_bands = [
-            sen12ms.S2Bands.B02,  # blue
-            sen12ms.S2Bands.B03,  # green
-            sen12ms.S2Bands.B04,  # red
-            sen12ms.S2Bands.B08,  # near-infrared
-            sen12ms.S2Bands.B05,  # red edge 1
-            sen12ms.S2Bands.B06,  # red edge 2
-            sen12ms.S2Bands.B07,  # red edge 3
-            sen12ms.S2Bands.B08A,  # red edge 4
-            sen12ms.S2Bands.B11,  # short-wave infrered 1
-            sen12ms.S2Bands.B12,  # short-wave infrared 2
-        ]
+
+        if s2_band_order == "unnatural":
+            # I'm not sure why I put the bands in the order specified in the article
+            # instead of simple increasing order. have to keep it now, since ResNet-110
+            # and FC-DenseNet-103 are trained with this order.
+            self.s2_bands = [
+                sen12ms.S2Bands.B02,  # blue
+                sen12ms.S2Bands.B03,  # green
+                sen12ms.S2Bands.B04,  # red
+                sen12ms.S2Bands.B08,  # near-infrared
+                sen12ms.S2Bands.B05,  # red edge 1
+                sen12ms.S2Bands.B06,  # red edge 2
+                sen12ms.S2Bands.B07,  # red edge 3
+                sen12ms.S2Bands.B08A,  # red edge 4
+                sen12ms.S2Bands.B11,  # short-wave infrered 1
+                sen12ms.S2Bands.B12,  # short-wave infrared 2
+            ]
+        else:
+            # however, for future experiments let's use the natural order
+            self.s2_bands = [
+                sen12ms.S2Bands.B02,  # blue
+                sen12ms.S2Bands.B03,  # green
+                sen12ms.S2Bands.B04,  # red
+                sen12ms.S2Bands.B05,  # red edge 1
+                sen12ms.S2Bands.B06,  # red edge 2
+                sen12ms.S2Bands.B07,  # red edge 3
+                sen12ms.S2Bands.B08,  # near-infrared
+                sen12ms.S2Bands.B08A,  # red edge 4
+                sen12ms.S2Bands.B11,  # short-wave infrered 1
+                sen12ms.S2Bands.B12,  # short-wave infrared 2
+            ]
 
     def __len__(self):
         return len(self.patch_unique_ids)
@@ -51,7 +72,7 @@ class SEN12MSDataset(torch.utils.data.Dataset):
         s1, _ = self._dataset.get_patch(self.season, scene, patch, self.s1_bands)
         s2, _ = self._dataset.get_patch(self.season, scene, patch, self.s2_bands)
         lc, _ = self._dataset.get_patch(self.season, scene, patch, self.lc_bands)
-        
+
         # for some reason, some of the Sentinel-1 images (i.e., scene=146, patch=202)
         # have NaN values which completely screw everything up. took ages to find what's
         # wrong and why. the error PyTorch threw was at the accuracy computation:
@@ -60,7 +81,7 @@ class SEN12MSDataset(torch.utils.data.Dataset):
 
         mean = np.nanmean(s1, axis=(1, 2), keepdims=True)
         np.nan_to_num(s1, copy=False, nan=mean)
-        
+
         s1_image = s1 - mean
         s1_image /= s1.std(axis=(1, 2), keepdims=True)
         s1_image = torch.tensor(s1_image)
@@ -94,9 +115,11 @@ class SEN12MSDataset(torch.utils.data.Dataset):
 class SEN12MSDataset_64x64subpatches(torch.utils.data.Dataset):
     """ PyTotch wrapper for the dataloader provided by the dataset authors. """
 
-    def __init__(self, base_dir, season=SUMMER):
+    def __init__(self, base_dir, season=SUMMER, s2_band_order="unnatural"):
         self.base_dir = base_dir
         self.season = season
+        self.s2_band_order = s2_band_order
+
         self._dataset = sen12ms.SEN12MSDataset(base_dir=base_dir)
 
         # get a dictionary {scene_id: patch_ids} for the whole season
@@ -114,18 +137,37 @@ class SEN12MSDataset_64x64subpatches(torch.utils.data.Dataset):
 
         self.lc_bands = sen12ms.LCBands.landuse
         self.s1_bands = sen12ms.S1Bands.ALL
-        self.s2_bands = [
-            sen12ms.S2Bands.B02,  # blue
-            sen12ms.S2Bands.B03,  # green
-            sen12ms.S2Bands.B04,  # red
-            sen12ms.S2Bands.B08,  # near-infrared
-            sen12ms.S2Bands.B05,  # red edge 1
-            sen12ms.S2Bands.B06,  # red edge 2
-            sen12ms.S2Bands.B07,  # red edge 3
-            sen12ms.S2Bands.B08A,  # red edge 4
-            sen12ms.S2Bands.B11,  # short-wave infrered 1
-            sen12ms.S2Bands.B12,  # short-wave infrared 2
-        ]
+
+        if s2_band_order == "unnatural":
+            # I'm not sure why I put the bands in the order specified in the article
+            # instead of simple increasing order. have to keep it now, since ResNet-110
+            # and FC-DenseNet-103 are trained with this order.
+            self.s2_bands = [
+                sen12ms.S2Bands.B02,  # blue
+                sen12ms.S2Bands.B03,  # green
+                sen12ms.S2Bands.B04,  # red
+                sen12ms.S2Bands.B08,  # near-infrared
+                sen12ms.S2Bands.B05,  # red edge 1
+                sen12ms.S2Bands.B06,  # red edge 2
+                sen12ms.S2Bands.B07,  # red edge 3
+                sen12ms.S2Bands.B08A,  # red edge 4
+                sen12ms.S2Bands.B11,  # short-wave infrered 1
+                sen12ms.S2Bands.B12,  # short-wave infrared 2
+            ]
+        else:
+            # however, for future experiments let's use the natural order
+            self.s2_bands = [
+                sen12ms.S2Bands.B02,  # blue
+                sen12ms.S2Bands.B03,  # green
+                sen12ms.S2Bands.B04,  # red
+                sen12ms.S2Bands.B05,  # red edge 1
+                sen12ms.S2Bands.B06,  # red edge 2
+                sen12ms.S2Bands.B07,  # red edge 3
+                sen12ms.S2Bands.B08,  # near-infrared
+                sen12ms.S2Bands.B08A,  # red edge 4
+                sen12ms.S2Bands.B11,  # short-wave infrered 1
+                sen12ms.S2Bands.B12,  # short-wave infrared 2
+            ]
 
         self.class_to_target_map = {
             0: 0,  # turns out, some subpatches [i.e. idx=54361] have mode NODATA, 0
