@@ -1,3 +1,8 @@
+# local files
+.vscode/
+SEN12MS_sample/
+*model_zoo/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

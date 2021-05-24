@@ -25,7 +25,10 @@ from glob import glob
 class S1Bands(Enum):
     VV = 1
     VH = 2
+    DVV = 3
+    DVH = 4
     ALL = [VV, VH]
+    ALLD = [DVV,DVH]
     NONE = []
 
 
@@ -174,6 +177,51 @@ class SEN12MSDataset:
             data = np.expand_dims(data, axis=0)
 
         return data, bounds
+
+    """
+        Save raster data and image bounds for the defined bands of a specific patch
+        This method only save a sinlge patch from a single sensor as defined by the bands specified
+    """
+    
+    def save_patch(self, data, season, scene_id, patch_id, bands):
+        season = Seasons(season).value
+        sensor = None
+
+        if isinstance(bands, (list, tuple)):
+            b = bands[0]
+        else:
+            b = bands
+        
+        if isinstance(b, S1Bands):
+            sensor = Sensor.s1.value
+            bandEnum = S1Bands
+        elif isinstance(b, S2Bands):
+            sensor = Sensor.s2.value
+            bandEnum = S2Bands
+        elif isinstance(b, LCBands):
+            sensor = Sensor.lc.value
+            bandEnum = LCBands
+        else:
+            raise Exception("Invalid bands specified")
+
+        if isinstance(bands, (list, tuple)):
+            bands = [b.value for b in bands]
+        else:
+            bands = bands.value
+
+        scene = "{}_{}".format(sensor, scene_id)
+        filename = "{}_{}_p{}.tif".format(season, scene, patch_id)
+        patch_path = os.path.join(self.base_dir, season, scene, filename)
+        
+        with rasterio.open(patch_path, 'w', 
+                            driver='GTiff', 
+                            dtype=data[0].dtype,
+                            width=data[0].shape[2], 
+                            height=data[0].shape[1], 
+                            count=data[0].shape[0],
+                            bounds = data[1]) as dataset:
+            dataset.write(data[0])
+            # TODO: write the "bounds"
 
     """
         Returns a triplet of patches. S1, S2 and LC as well as the geo-bounds of the patch
