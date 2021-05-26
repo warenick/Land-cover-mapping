@@ -30,7 +30,7 @@ class SEN12MSDataset(torch.utils.data.Dataset):
                 self.patch_unique_ids.append((scene_id, patch_id))
 
         self.lc_bands = sen12ms.LCBands.landuse
-        self.s1_bands = sen12ms.S1Bands.ALL
+        self.s1_bands = sen12ms.S1Bands.ALLD
 
         if s2_band_order == "unnatural":
             # I'm not sure why I put the bands in the order specified in the article
