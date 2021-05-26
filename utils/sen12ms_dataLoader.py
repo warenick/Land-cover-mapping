@@ -147,7 +147,8 @@ class SEN12MSDataset:
             b = bands[0]
         else:
             b = bands
-        
+
+        denosed_prefix = "d" if bands == S1Bands.ALLD else ""
         if isinstance(b, S1Bands):
             sensor = Sensor.s1.value
             bandEnum = S1Bands
@@ -166,7 +167,7 @@ class SEN12MSDataset:
             bands = bands.value
 
         scene = "{}_{}".format(sensor, scene_id)
-        filename = "{}_{}_p{}.tif".format(season, scene, patch_id)
+        filename = "{}_{}_{}p{}.tif".format(season, scene, denosed_prefix, patch_id)
         patch_path = os.path.join(self.base_dir, season, scene, filename)
 
         with rasterio.open(patch_path) as patch:
@@ -192,6 +193,8 @@ class SEN12MSDataset:
         else:
             b = bands
         
+        denosed_prefix = "d" if bands == S1Bands.ALLD else ""
+        
         if isinstance(b, S1Bands):
             sensor = Sensor.s1.value
             bandEnum = S1Bands
@@ -210,7 +213,7 @@ class SEN12MSDataset:
             bands = bands.value
 
         scene = "{}_{}".format(sensor, scene_id)
-        filename = "{}_{}_p{}.tif".format(season, scene, patch_id)
+        filename = "{}_{}_{}p{}.tif".format(season, scene, denosed_prefix, patch_id)
         patch_path = os.path.join(self.base_dir, season, scene, filename)
         
         with rasterio.open(patch_path, 'w', 
@@ -285,7 +288,7 @@ class SEN12MSDataset:
 if __name__ == "__main__":
     import time
     # Load the dataset specifying the base directory
-    sen12ms = SEN12MSDataset(".")
+    sen12ms = SEN12MSDataset(base_dir='SEN12MS_sample')
 
     spring_ids = sen12ms.get_season_ids(Seasons.SPRING)
     cnt_patches = sum([len(pids) for pids in spring_ids.values()])
@@ -294,12 +297,11 @@ if __name__ == "__main__":
 
     start = time.time()
     # Load the RGB bands of the first S2 patch in scene 8
-    SCENE_ID = 8
-    s2_rgb_patch, bounds = sen12ms.get_patch(Seasons.SPRING, SCENE_ID, 
-                                            spring_ids[SCENE_ID][0], bands=S2Bands.RGB)
+    # SCENE_ID = 0
+    # s2_rgb_patch, bounds = sen12ms.get_patch(Seasons.SPRING, SCENE_ID, spring_ids[SCENE_ID][0], bands=S2Bands.RGB)
     print("Time Taken {}s".format(time.time() - start))
                                             
-    print("S2 RGB: {} Bounds: {}".format(s2_rgb_patch.shape, bounds))
+    # print("S2 RGB: {} Bounds: {}".format(s2_rgb_patch.shape, bounds))
 
     print("\n")
 
@@ -310,7 +312,7 @@ if __name__ == "__main__":
         if i >= 3:
             break
 
-        s1, s2, lc, bounds = sen12ms.get_s1s2lc_triplet(Seasons.SPRING, scene_id, patch_ids[0], s1_bands=S1Bands.ALL,
+        s1, s2, lc, bounds = sen12ms.get_s1s2lc_triplet(Seasons.SPRING, scene_id, patch_ids[0], s1_bands=S1Bands.ALLD,
                                                         s2_bands=[S2Bands.red, S2Bands.nir1], lc_bands=LCBands.IGBP)
         print(
             f"Scene: {scene_id}, S1: {s1.shape}, S2: {s2.shape}, LC: {lc.shape}, Bounds: {bounds}")
