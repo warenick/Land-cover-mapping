@@ -167,7 +167,7 @@ class SEN12MSDataset:
             bands = bands.value
 
         scene = "{}_{}".format(sensor, scene_id)
-        filename = "{}_{}_{}p{}.tif".format(season, scene, denosed_prefix, patch_id)
+        filename = "{}_{}_p{}{}.tif".format(season, scene, denosed_prefix, patch_id)
         patch_path = os.path.join(self.base_dir, season, scene, filename)
 
         with rasterio.open(patch_path) as patch:
@@ -213,7 +213,7 @@ class SEN12MSDataset:
             bands = bands.value
 
         scene = "{}_{}".format(sensor, scene_id)
-        filename = "{}_{}_{}p{}.tif".format(season, scene, denosed_prefix, patch_id)
+        filename = "{}_{}_p{}{}.tif".format(season, scene, denosed_prefix, patch_id)
         patch_path = os.path.join(self.base_dir, season, scene, filename)
         
         with rasterio.open(patch_path, 'w', 
